@@ -58,19 +58,3 @@ class RosDiagnosticsCollector:
                 stat for stat in self._topic_stats if stat.name != topic]
         rospy.sleep(1)
         self._lock.release()
-
-    def _lookup_and_post(self, event=None):
-        self._lock.acquire()
-        for topic_stat in self._topic_stats:
-            topic_name = topic_stat.name
-            stats = self._r.get_hz(topic=topic_name)
-            hz = 0
-            if stats is not None:
-                hz = stats[0]
-            topic_stat.set_hz(hz)
-        json_nodes = json.dumps(rosnode.get_node_names())
-        json_string = json.dumps([stat.__dict__ for stat in self._topic_stats])
-        self._fclient.post_json("online.nodes", json_nodes)
-        self._fclient.post_json(self._stream_name, json_string)
-        print(json_string)
-        self._lock.release()
